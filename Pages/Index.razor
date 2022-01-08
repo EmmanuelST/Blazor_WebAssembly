@@ -1,0 +1,51 @@
+﻿@page "/"
+@inject HttpClient Http
+
+@using Models
+
+
+@*<h1>Hello, world!</h1>
+
+    Welcome to your new app.
+
+    <SurveyPrompt Title="How is Blazor working for you?" />*@
+
+<div class="container">
+
+    <EditForm Model="new Personas()">
+
+        <div>
+
+            <div class="form-group">
+                <div>Nombre</div>
+                <InputText class="form-control" @bind-Value="Persona.Nombre"></InputText>
+            </div>
+
+            <div>
+                <button class="btn btn-primary" @onclick="Guardar" >Guardar</button>
+            </div>
+
+        </div>
+
+    </EditForm>
+
+
+</div>
+
+@code   {
+
+    public Personas Persona { get; set; } = new Personas();
+
+
+    public async Task Guardar()
+    {
+
+        await Http.PostAsJsonAsync(@"https://localhost:44371/api/Personas",Persona);
+
+        Persona = new Personas();
+
+    }
+
+
+}
+

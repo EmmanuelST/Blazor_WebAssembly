@@ -1,0 +1,163 @@
+﻿@page "/Syncronizar"
+@inject HttpClient Http
+@inject LocalData _localdata
+
+<div class="container">
+
+
+    <h3>Syncronizar</h3>
+
+    <div>
+        <span class="text-danger">@Mensaje</span>
+    </div>
+    <div>
+        <div class="form-group">
+
+            <button class="btn btn-primary" @onclick="BuscarArticulosOnline">Obtener Art&iacute;culos</button>
+
+            <button class="btn btn-info" @onclick="BuscarArticulosLocal">Refrescar Art&iacute;culos</button>
+
+            <button class="btn btn-success" @onclick="Sync">Enviar Art&iacute;culos</button>
+
+        </div>
+    </div>
+
+
+
+    @if (Animacion)
+    {
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    }
+
+    @if (ListadoArticulos != null && ListadoArticulos.Count > 0)
+    {
+        <div class="table-responsive">
+
+            <table class="table ">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">IdArticulos</th>
+                        <th scope="col">C&oacute;digo</th>
+                        <th scope="col">Descripci&oacute;n</th>
+                        <th scope="col">Existencia</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    @foreach (var item in ListadoArticulos)
+                    {
+                        <tr>
+                            <th scope="row">@item.IdArticulo</th>
+                            <td>@item.Codigo</td>
+                            <td>@item.Descripcion</td>
+                            <td>@item.Existencia</td>
+                        </tr>
+
+                    }
+
+
+                </tbody>
+            </table>
+
+        </div>
+    }
+</div>
+
+
+@code {
+    public string Mensaje { get; set; }
+
+    public List<Articulos> ListadoArticulos { get; set; }
+
+    public bool Animacion { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await BuscarArticulosLocal();
+        // return base.OnInitializedAsync();
+    }
+
+
+    public async Task BuscarArticulosLocal()
+    {
+
+        try
+        {
+            Animacion = true;
+
+            ListadoArticulos = _localdata.GetInstance();
+
+            Animacion = false;
+        }
+        catch (Exception ex)
+        {
+
+            Mensaje = $"{ex.Message} - {ex.InnerException}";
+        }
+
+    }
+
+    public async Task BuscarArticulosOnline()
+    {
+
+        try
+        {
+            Animacion = true;
+            ListadoArticulos = await Http.GetFromJsonAsync<List<Articulos>>(@" https://assemblyapi.azurewebsites.net/api/Articulos");
+
+            ListadoArticulos = ListadoArticulos.OrderBy(A => A.Descripcion).ToList();
+
+            Animacion = false;
+
+            _localdata.SetInstance(ListadoArticulos);
+
+
+        }
+        catch (Exception ex)
+        {
+
+            Mensaje = $"{ex.Message} - {ex.InnerException}";
+        }
+
+    }
+
+
+    public async Task Sync()
+    {
+        Mensaje = string.Empty;
+        try
+        {
+            Animacion = true;
+
+
+            foreach (var item in ListadoArticulos)
+            {
+                if (item.IdArticulo == 0)
+                {
+                    await Http.PostAsJsonAsync(@"https://assemblyapi.azurewebsites.net/api/Articulos", item);
+                }
+                else
+                {
+                    await Http.PutAsJsonAsync($@" https://assemblyapi.azurewebsites.net/api/Articulos/{item.IdArticulo}", item);
+                }
+               
+            }
+
+            Animacion = false;
+            await BuscarArticulosOnline();
+            await BuscarArticulosLocal();
+
+        }
+        catch (Exception ex)
+        {
+
+            Mensaje = $"{ex.Message} - {ex.InnerException}";
+        }
+
+
+
+    }
+
+}

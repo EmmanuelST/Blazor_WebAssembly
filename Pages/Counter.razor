@@ -1,0 +1,114 @@
+﻿@page "/counter"
+@inject HttpClient Http
+@inject LocalData _localdata
+
+
+@using Models;
+
+@*<h1>Counter</h1>
+
+    <p>Current count: @currentCount</p>
+
+    <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>*@
+<div class="container">
+
+    <EditForm Model="new Personas()">
+        <div class="form-group">
+            <button class="btn btn-primary" @onclick="BuscarArticulos">Buscar</button>
+        </div>
+
+        @if (Animacion)
+        {
+            <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        }
+
+        @if (ListadoArticulos != null && ListadoArticulos.Count > 0)
+        {
+            <div class="">
+
+                <table class="table">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">IdArticulos</th>
+                            <th scope="col">Codigo</th>
+                            <th scope="col">Descripcion</th>
+                            <th scope="col">Existencia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @foreach (var item in ListadoArticulos)
+                        {
+                            <tr>
+                                <th scope="row">@item.IdArticulo</th>
+                                <td>@item.Codigo</td>
+                                <td>@item.Descripcion</td>
+                                <td>@item.Existencia</td>
+                            </tr>
+
+                        }
+
+
+                    </tbody>
+                </table>
+
+            </div>
+        }
+
+    </EditForm>
+
+
+
+</div>
+
+
+
+
+@code {
+
+    public Personas Persona { get; set; }
+
+    public List<Articulos> ListadoArticulos { get; set; }
+
+    public List<Personas> ListaPersonas { get; set; }
+    private int currentCount = 0;
+
+    public bool Animacion { get; set; } = false;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+
+
+    public async Task BuscarArticulos()
+    {
+
+        try
+        {
+            Animacion = true;
+            //ListadoArticulos = await Http.GetFromJsonAsync<List<Articulos>>(@" https://assemblyapi.azurewebsites.net/api/Articulos");
+
+            ListadoArticulos = _localdata.GetInstance();
+
+            ListadoArticulos = ListadoArticulos.OrderBy(A => A.Descripcion).ToList();
+
+            Animacion = false;
+
+            var data = _localdata.GetInstance();
+
+            data = ListadoArticulos;
+        }
+        catch (Exception ex)
+        {
+
+            throw ex;
+        }
+
+    }
+
+
+
+}

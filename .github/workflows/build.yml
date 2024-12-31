@@ -20,9 +20,13 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
+    - name: Display current directory and contents
+      run: |
+        echo "Current directory: $(pwd)"
+        ls -al
     - name: Restore dependencies
-      run: dotnet restore ./First_WebApplication.sln
+      run: dotnet restore ./First_WebApplication/First_WebApplication.sln
     - name: Build
-      run: dotnet build ./First_WebApplication.sln --no-restore
+      run: dotnet build ./First_WebApplication/First_WebApplication.sln --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
